@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+groq
+tavily-python
+trafilatura
+sentence-transformers
+torch
+python-dotenv
+requests
+sse-starlette
+scipy
+numpy

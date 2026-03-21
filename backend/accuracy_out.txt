@@ -1,0 +1,6 @@
+The Eiffel Tower is located in Paris France -> Expected: TRUE Got: TRUE Reason: E:0.91 C:0.19 N:0.09
+The Eiffel Tower was completed in 1889 -> Expected: TRUE Got: TRUE Reason: E:0.93 C:0.18 N:0.05
+Water boils at 100 degrees Celsius at sea level -> Expected: TRUE Got: TRUE Reason: E:0.86 C:0.37 N:0.12
+Apple Inc was founded in 1976 -> Expected: TRUE Got: TRUE Reason: E:0.89 C:0.56 N:0.10
+The Great Wall of China is clearly visible from space -> Expected: FALSE Got: FALSE Reason: E:0.09 C:0.96 N:0.04
+Thomas Edison built the Eiffel Tower -> Expected: FALSE Got: TRUE Reason: E:0.50 C:0.93 N:0.07
