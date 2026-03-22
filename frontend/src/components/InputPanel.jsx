@@ -19,174 +19,66 @@ export default function InputPanel({ onRun, isRunning }) {
   };
 
   const Spinner = () => (
-    <div
-      style={{
-        width: 18,
-        height: 18,
-        border: "2.5px solid rgba(255,255,255,0.3)",
-        borderTopColor: "#ffffff",
-        borderRadius: "50%",
-        animation: "spin 0.7s linear infinite",
-        marginRight: 8,
-      }}
-    />
+    <div className="w-5 h-5 border-[3px] border-[var(--text-secondary)] border-t-white rounded-full animate-[spin_0.8s_linear_infinite]" />
   );
 
-  const focusStyle = {
-    borderColor: "#a78bfa",
-    boxShadow: "0 0 0 4px rgba(167,139,250,0.12)",
-    outline: "none",
-    background: "#ffffff",
-  };
-
-  const blurStyle = {
-    borderColor: "#e8e6ff",
-    boxShadow: "none",
-    background: "#f8f7ff",
-  };
-
   return (
-    <section
-      style={{
-        background: "rgba(255,255,255,0.85)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
-        border: "1px solid rgba(255,255,255,0.9)",
-        borderRadius: 24,
-        padding: 32,
-        boxShadow:
-          "0 8px 40px rgba(99,102,241,0.08), 0 1px 3px rgba(0,0,0,0.04)",
-      }}
-    >
+    <div className="glass-panel rounded-[2rem] p-6 md:p-10 transition-all duration-500 relative z-20">
+      
       {/* Tab switcher */}
-      <div
-        style={{
-          display: "inline-flex",
-          background: "#f1f0ff",
-          borderRadius: 14,
-          padding: 4,
-          marginBottom: 20,
-        }}
-      >
+      <div className="flex bg-[var(--bg-elevated)] p-1.5 md:p-2 rounded-xl md:rounded-2xl border border-[var(--border-default)] w-max mb-6">
         {["text", "url"].map((t) => (
           <button
             key={t}
             type="button"
             onClick={() => setTab(t)}
-            style={{
-              background: tab === t ? "#ffffff" : "transparent",
-              color: tab === t ? "#6366f1" : "#94a3b8",
-              borderRadius: 10,
-              padding: "8px 20px",
-              fontWeight: tab === t ? 600 : 500,
-              fontSize: 14,
-              border: "none",
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-              fontFamily: "inherit",
-              boxShadow:
-                tab === t ? "0 2px 8px rgba(99,102,241,0.15)" : "none",
-            }}
+            className={`px-4 md:px-8 py-2 md:py-2.5 rounded-lg md:rounded-xl font-medium text-xs md:text-sm tracking-wide transition-all ${
+              tab === t
+                ? "bg-[var(--purple-mid)] border border-[var(--purple-bright)] text-white shadow-[0_0_15px_var(--purple-glow)]"
+                : "bg-transparent border border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            }`}
           >
             {t === "text" ? "Paste Text" : "Enter URL"}
           </button>
         ))}
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="space-y-6">
         {tab === "text" ? (
-          <textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Paste the content you want to verify..."
-            style={{
-              width: "100%",
-              minHeight: 160,
-              background: "#f8f7ff",
-              border: "1.5px solid #e8e6ff",
-              borderRadius: 14,
-              padding: 16,
-              fontSize: 14,
-              color: "#1a1a2e",
-              fontFamily: "inherit",
-              resize: "vertical",
-              outline: "none",
-              transition: "border-color 0.2s, box-shadow 0.2s, background 0.2s",
-              lineHeight: 1.6,
-            }}
-            onFocus={(e) => Object.assign(e.target.style, focusStyle)}
-            onBlur={(e) => Object.assign(e.target.style, blurStyle)}
-          />
+          <div>
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Paste the statement or article here to begin AI forensics..."
+              className="w-full min-h-[160px] bg-[var(--bg-input)] border border-[var(--border-default)] rounded-xl md:rounded-2xl px-5 md:px-6 py-5 font-mono text-sm md:text-md text-[var(--text-primary)] outline-none focus:border-[var(--purple-mid)] focus:shadow-[0_0_20px_var(--purple-glow)] transition-all resize-y placeholder-[var(--text-muted)]"
+            />
+          </div>
         ) : (
-          <input
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://example.com/article"
-            style={{
-              width: "100%",
-              height: 50,
-              background: "#f8f7ff",
-              border: "1.5px solid #e8e6ff",
-              borderRadius: 14,
-              padding: "0 16px",
-              fontSize: 14,
-              color: "#1a1a2e",
-              fontFamily: "inherit",
-              outline: "none",
-              transition: "border-color 0.2s, box-shadow 0.2s, background 0.2s",
-            }}
-            onFocus={(e) => Object.assign(e.target.style, focusStyle)}
-            onBlur={(e) => Object.assign(e.target.style, blurStyle)}
-          />
+          <div>
+            <input
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="https://example.com/article"
+              className="w-full h-14 bg-[var(--bg-input)] border border-[var(--border-default)] rounded-xl md:rounded-2xl px-5 md:px-6 font-mono text-sm md:text-md text-[var(--text-primary)] outline-none focus:border-[var(--purple-mid)] focus:shadow-[0_0_20px_var(--purple-glow)] transition-all placeholder-[var(--text-muted)]"
+            />
+          </div>
         )}
 
-        <button
-          type="submit"
-          disabled={!canSubmit}
-          style={{
-            width: "100%",
-            height: 54,
-            marginTop: 16,
-            background: "#1a1a2e",
-            border: "none",
-            borderRadius: 14,
-            color: "#ffffff",
-            fontSize: 15,
-            fontWeight: 600,
-            cursor: canSubmit ? "pointer" : "not-allowed",
-            letterSpacing: "0.02em",
-            transition: "all 0.25s ease",
-            opacity: canSubmit ? 1 : 0.45,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 8,
-            fontFamily: "inherit",
-          }}
-          onMouseEnter={(e) => {
-            if (canSubmit) {
-              e.currentTarget.style.background = "#2d2b55";
-              e.currentTarget.style.transform = "translateY(-2px)";
-              e.currentTarget.style.boxShadow =
-                "0 8px 24px rgba(26,26,46,0.25)";
-            }
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "#1a1a2e";
-            e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.boxShadow = "none";
-          }}
-          onMouseDown={(e) => {
-            if (canSubmit) e.currentTarget.style.transform = "translateY(0)";
-          }}
-          onMouseUp={(e) => {
-            if (canSubmit) e.currentTarget.style.transform = "translateY(-2px)";
-          }}
-        >
-          {isRunning && <Spinner />}
-          {isRunning ? "Analyzing..." : "Run Fact Check"}
-        </button>
+        <div className="pt-2 flex justify-end">
+          <button
+            type="submit"
+            disabled={!canSubmit}
+            className={`px-8 h-12 flex items-center justify-center gap-3 rounded-xl font-bold text-sm tracking-wide border transition-all duration-300 ${
+              canSubmit
+                ? "bg-[var(--text-primary)] text-[var(--bg-base)] border-transparent hover:scale-105 shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+                : "bg-[var(--bg-elevated)] text-[var(--text-muted)] border-[var(--border-subtle)] cursor-not-allowed"
+            }`}
+          >
+            {isRunning && <Spinner />}
+            {isRunning ? "Running Forensics..." : "Run Fact Check"}
+          </button>
+        </div>
       </form>
-    </section>
+    </div>
   );
 }

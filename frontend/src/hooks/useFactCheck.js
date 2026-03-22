@@ -20,6 +20,7 @@ export function useFactCheck() {
   const [summary, setSummary] = useState(null);
   const [isRunning, setIsRunning] = useState(false);
   const [error, setError] = useState(null);
+  const [inputText, setInputText] = useState("");
 
   const eventSourceRef = useRef(null);
 
@@ -48,6 +49,7 @@ export function useFactCheck() {
       setAiScore(null);
       setClaims([]);
       setStages(initialStages);
+      setInputText(input);
 
       const url = `/api/factcheck?input=${encodeURIComponent(input)}&type=${encodeURIComponent(
         type
@@ -75,8 +77,10 @@ export function useFactCheck() {
             ...prev,
             extracting: stageStateFromSse(status),
           }));
-          if (status === "done" && Array.isArray(payload.claims)) {
-            setClaims(payload.claims);
+          if (status === "loading" && payload.claim) {
+             setClaims(prev => [...prev.filter(c => c.id !== payload.claim.id), payload.claim]);
+          } else if (status === "done" && Array.isArray(payload.claims)) {
+             setClaims(payload.claims);
           }
         } else if (stage === "searching") {
           setStages((prev) => ({
@@ -130,6 +134,7 @@ export function useFactCheck() {
     summary,
     isRunning,
     error,
+    inputText,
   };
 }
 

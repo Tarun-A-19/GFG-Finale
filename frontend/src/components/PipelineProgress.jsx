@@ -8,11 +8,8 @@ const steps = [
 ];
 
 const Check = () => (
-  <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-    <path
-      d="M7.7 14.2L3.7 10.2L5.1 8.8L7.7 11.4L14.9 4.2L16.3 5.6L7.7 14.2Z"
-      fill="white"
-    />
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="square" strokeLinejoin="miter">
+    <path d="M5 12l5 5L20 7"></path>
   </svg>
 );
 
@@ -21,129 +18,62 @@ export default function PipelineProgress({ stages }) {
 
   const circleStyle = (status) => {
     if (status === "done") {
-      return {
-        background: "linear-gradient(135deg, #6366f1, #a78bfa)",
-        border: "none",
-      };
+      return "bg-[var(--purple-mid)] border-transparent text-white shadow-[0_0_15px_var(--purple-glow)]";
     }
     if (status === "loading") {
-      return {
-        background: "#ffffff",
-        border: "2px solid #a78bfa",
-      };
+      return "bg-[var(--bg-elevated)] border-[var(--border-strong)] text-[var(--text-primary)] shadow-[0_0_15px_var(--purple-glow)]";
     }
-    return {
-      background: "#f1f0ff",
-      border: "2px solid #e8e6ff",
-    };
+    if (status === "retrying") {
+      return "bg-[rgba(251,191,36,0.1)] border-[#fbbf24] text-[#fbbf24] shadow-[0_0_15px_rgba(251,191,36,0.2)]";
+    }
+    return "bg-transparent border-[var(--border-default)] text-[var(--text-muted)]";
   };
 
   const labelColor = (status) => {
-    if (status === "done") return "#6366f1";
-    if (status === "loading") return "#a78bfa";
-    return "#c4c0e8";
+    if (status === "done") return "text-[var(--purple-bright)]";
+    if (status === "loading") return "text-[var(--text-primary)]";
+    if (status === "retrying") return "text-[#fbbf24]";
+    return "text-[var(--text-muted)]";
   };
 
   return (
-    <div
-      style={{
-        marginTop: 20,
-        background: "rgba(255,255,255,0.7)",
-        backdropFilter: "blur(10px)",
-        WebkitBackdropFilter: "blur(10px)",
-        border: "1px solid rgba(255,255,255,0.9)",
-        borderRadius: 20,
-        padding: "24px 28px",
-        boxShadow: "0 4px 20px rgba(99,102,241,0.06)",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
+    <div className="glass-panel rounded-2xl p-6 md:p-8 mt-6">
+      <div className="flex justify-between items-center relative z-10 w-full overflow-x-auto pb-2">
         {steps.map((s, idx) => {
           const status = statusFor(s.key);
           return (
             <React.Fragment key={s.key}>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 8,
-                  flex: "0 0 auto",
-                }}
-              >
+              <div className="flex flex-col items-center gap-3 shrink-0 px-2 min-w-[70px]">
                 {/* Circle */}
                 <div
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: "50%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    position: "relative",
-                    ...circleStyle(status),
-                  }}
+                  className={`w-12 h-12 md:w-14 md:h-14 rounded-xl border flex items-center justify-center relative transition-all duration-300 ${circleStyle(status)}`}
                 >
                   {status === "loading" && (
-                    <>
-                      <div
-                        style={{
-                          position: "absolute",
-                          inset: -6,
-                          borderRadius: "50%",
-                          border: "2px solid #a78bfa",
-                          opacity: 0.4,
-                          animation: "ripple 1.2s ease-out infinite",
-                        }}
-                      />
-                      <div
-                        style={{
-                          width: 16,
-                          height: 16,
-                          border: "2px solid #e8e6ff",
-                          borderTopColor: "#6366f1",
-                          borderRadius: "50%",
-                          animation: "spin 0.8s linear infinite",
-                        }}
-                      />
-                    </>
+                    <div className="w-5 h-5 border-[3px] border-[var(--text-secondary)] border-t-[var(--text-primary)] rounded-full animate-[spin_1s_linear_infinite]" />
                   )}
                   {status === "done" && <Check />}
+                  {status === "retrying" && <span className="text-xl">🔄</span>}
                 </div>
                 {/* Label */}
-                <span
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 600,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.06em",
-                    color: labelColor(status),
-                  }}
-                >
+                <span className={`text-[9px] md:text-xs font-mono uppercase tracking-widest flex flex-col items-center gap-1 ${labelColor(status)}`}>
                   {s.label}
+                  {status === "retrying" && (
+                     <span className="text-[9px] text-[#fbbf24] tracking-widest font-bold">DEEPENING...</span>
+                  )}
                 </span>
               </div>
 
               {/* Connector */}
               {idx < steps.length - 1 && (
                 <div
+                  className={`flex-1 h-1 md:h-1.5 rounded-full mx-1 md:mx-4 mb-8 transition-all duration-500`}
                   style={{
-                    flex: 1,
-                    height: 2,
-                    margin: "0 8px",
-                    marginBottom: 24,
-                    background:
-                      statusFor(steps[idx].key) === "done"
-                        ? "linear-gradient(90deg, #6366f1, #a78bfa)"
-                        : "#e8e6ff",
-                    transition: "background 0.6s ease",
-                    borderRadius: 1,
+                    backgroundColor: statusFor(steps[idx].key) === "done" 
+                        ? "var(--purple-mid)" 
+                        : "var(--border-subtle)",
+                    boxShadow: statusFor(steps[idx].key) === "done" 
+                        ? "0 0 10px var(--purple-glow)" 
+                        : "none"
                   }}
                 />
               )}

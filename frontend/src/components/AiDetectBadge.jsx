@@ -6,67 +6,39 @@ export default function AiDetectBadge({ aiScore }) {
     return Math.max(0, Math.min(100, p));
   }, [aiScore]);
 
-  const barGradient = useMemo(() => {
-    if (percent < 30) return "linear-gradient(90deg, #10b981, #34d399)";
-    if (percent <= 70) return "linear-gradient(90deg, #f59e0b, #fbbf24)";
-    return "linear-gradient(90deg, #ef4444, #f87171)";
-  }, [percent]);
+  // Use mission 1 styling gradients based on standard logic
+  const getStyleObj = () => {
+    if (percent < 30) return { bar: "var(--true-bar)", glow: "var(--true-glow)", text: "var(--true-text)" }; // Low AI: good
+    if (percent <= 70) return { bar: "var(--partial-bar)", glow: "var(--partial-glow)", text: "var(--partial-text)" }; // Mid AI: caution
+    return { bar: "var(--false-bar)", glow: "var(--false-glow)", text: "var(--false-text)" }; // High AI: danger
+  };
 
-  const color = useMemo(() => {
-    if (percent < 30) return "#10b981";
-    if (percent <= 70) return "#d97706";
-    return "#ef4444";
-  }, [percent]);
+  const styleObj = getStyleObj();
 
   return (
-    <section
-      style={{
-        marginTop: 12,
-        background: "rgba(255,255,255,0.85)",
-        backdropFilter: "blur(10px)",
-        WebkitBackdropFilter: "blur(10px)",
-        border: "1px solid rgba(255,255,255,0.95)",
-        borderRadius: 20,
-        padding: "20px 24px",
-        boxShadow: "0 4px 20px rgba(99,102,241,0.07)",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <span style={{ fontSize: 13, fontWeight: 600, color: "#1a1a2e" }}>
-          AI-Generated Content Probability
+    <div className="glass-panel border-r-4 border-r-transparent hover:border-r-[var(--purple-mid)] rounded-2xl p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all duration-300">
+      
+      <div className="flex-1">
+        <h3 className="font-mono text-sm tracking-widest mb-1 select-none text-[var(--text-primary)]">
+          AI Generation Probability
+        </h3>
+        <p className="text-[10px] font-mono tracking-widest text-[var(--text-secondary)]">
+          Higher scores indicate synthetic origin vs human origin
+        </p>
+      </div>
+
+      <div className="flex items-center gap-4 border border-[var(--border-default)] p-2 rounded-xl bg-[var(--bg-elevated)] shadow-inner">
+        <div className="w-32 md:w-48 h-3 bg-[var(--bg-input)] border border-[var(--border-subtle)] rounded overflow-hidden relative">
+           <div 
+             className="h-full rounded transition-all duration-1000 ease-out"
+             style={{ width: `${percent}%`, background: styleObj.bar, boxShadow: `0 0 10px ${styleObj.glow}` }}
+           />
+        </div>
+        <span className="font-mono text-lg w-14 text-right tracking-tight font-bold" style={{ color: styleObj.text }}>
+          {percent}%
         </span>
-        <span style={{ fontSize: 14, fontWeight: 700, color }}>{percent}%</span>
       </div>
 
-      <div
-        style={{
-          marginTop: 10,
-          height: 8,
-          borderRadius: 999,
-          background: "#f1f0ff",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            height: "100%",
-            width: `${percent}%`,
-            borderRadius: 999,
-            background: barGradient,
-            transition: "width 1s cubic-bezier(0.4,0,0.2,1)",
-          }}
-        />
-      </div>
-
-      <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 6 }}>
-        Higher scores suggest AI-generated content
-      </div>
-    </section>
+    </div>
   );
 }

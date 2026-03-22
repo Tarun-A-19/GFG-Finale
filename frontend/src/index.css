@@ -1,44 +1,92 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; }
-
-body {
-  font-family: 'Inter', sans-serif;
-  background: #f0f0ff;
-  min-height: 100vh;
-  overflow-x: hidden;
-  color: #1a1a2e;
+@theme {
+  --font-sans: "Inter", sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 }
 
-/* Ambient background blobs */
-body::before {
-  content: '';
-  position: fixed;
-  top: -20%;
-  left: -10%;
-  width: 60vw;
-  height: 60vw;
-  background: radial-gradient(circle, rgba(167,139,250,0.25) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
+@layer base {
+  :root {
+    /* Base surfaces */
+    --bg-base:        #080810;
+    --bg-card:        #0f0f1a;
+    --bg-card-hover:  #141428;
+    --bg-elevated:    #1a1a2e;
+    --bg-input:       #0a0a15;
+
+    /* Borders */
+    --border-subtle:  rgba(139, 92, 246, 0.12);
+    --border-default: rgba(139, 92, 246, 0.22);
+    --border-strong:  rgba(139, 92, 246, 0.45);
+
+    /* Brand purple (keep existing purple identity) */
+    --purple-dim:     #3d2a6e;
+    --purple-mid:     #7c3aed;
+    --purple-bright:  #a78bfa;
+    --purple-glow:    rgba(124, 58, 237, 0.18);
+
+    /* TRUE — Teal instead of green (less harsh on dark) */
+    --true-bg:        rgba(20, 184, 166, 0.10);
+    --true-border:    rgba(20, 184, 166, 0.35);
+    --true-text:      #2dd4bf;
+    --true-bar:       linear-gradient(90deg, #0d9488, #2dd4bf);
+    --true-glow:      rgba(20, 184, 166, 0.15);
+
+    /* FALSE — Deep crimson (less neon, more serious) */
+    --false-bg:       rgba(220, 38, 38, 0.10);
+    --false-border:   rgba(220, 38, 38, 0.35);
+    --false-text:     #f87171;
+    --false-bar:      linear-gradient(90deg, #b91c1c, #f87171);
+    --false-glow:     rgba(220, 38, 38, 0.12);
+
+    /* PARTIALLY TRUE — Amber gold */
+    --partial-bg:     rgba(217, 119, 6, 0.10);
+    --partial-border: rgba(217, 119, 6, 0.35);
+    --partial-text:   #fbbf24;
+    --partial-bar:    linear-gradient(90deg, #b45309, #fbbf24);
+    --partial-glow:   rgba(217, 119, 6, 0.12);
+
+    /* UNVERIFIABLE — Electric blue (NOT gray — must be visible) */
+    --unverif-bg:     rgba(59, 130, 246, 0.10);
+    --unverif-border: rgba(59, 130, 246, 0.30);
+    --unverif-text:   #93c5fd;
+    --unverif-bar:    linear-gradient(90deg, #1d4ed8, #93c5fd);
+    --unverif-glow:   rgba(59, 130, 246, 0.10);
+    --unverif-stripe: repeating-linear-gradient(
+      -45deg,
+      rgba(59,130,246,0.04) 0px,
+      rgba(59,130,246,0.04) 4px,
+      transparent 4px,
+      transparent 12px
+    );
+
+    /* API status */
+    --status-online:  #34d399;
+    --status-offline: #6b7280;   /* Gray NOT red — gray means disconnected */
+    --status-warn:    #fbbf24;
+
+    /* Text */
+    --text-primary:   #f1f0ff;
+    --text-secondary: #9ca3af;
+    --text-muted:     #4b5563;
+    --text-label:     #7c3aed;
+  }
+
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+    transition: background-color 0.5s, color 0.5s;
+    overflow-x: hidden;
+  }
 }
 
-body::after {
-  content: '';
-  position: fixed;
-  bottom: -10%;
-  right: -10%;
-  width: 50vw;
-  height: 50vw;
-  background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
+::selection {
+  background-color: #9333ea;
+  color: white;
 }
-
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: #f0f0ff; }
-::-webkit-scrollbar-thumb { background: #a78bfa; border-radius: 2px; }
 
 /* Animations */
 @keyframes pulse {
@@ -62,4 +110,27 @@ body::after {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+
+@keyframes livebeat { 
+  0%, 100% { transform: scale(1); opacity: 1; } 
+  50% { transform: scale(1.4); opacity: 0.7; } 
+}
+
+/* Glassmorphism utility */
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-default);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+.glass-panel-hover:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-strong);
 }
