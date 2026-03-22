@@ -29,7 +29,7 @@ def search_evidence(claim: str) -> list:
         # Primary search
         response = client.search(
             query=claim,
-            max_results=5,
+            max_results=7,
             search_depth="advanced",
             include_raw_content=False,
             exclude_domains=EXCLUDED_DOMAINS
@@ -70,6 +70,7 @@ def search_evidence(claim: str) -> list:
             print(f"[Retriever] Fallback search error: {e}")
 
     print(f"[Retriever] Found {len(results)} results for: {claim[:60]}")
+    results.sort(key=lambda x: len(x.get("content", "")), reverse=True)
     return results[:5]
 
 

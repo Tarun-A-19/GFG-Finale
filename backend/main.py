@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from contextlib import asynccontextmanager
 from typing import Any, Dict, Generator, List
@@ -11,12 +12,28 @@ from fastapi import FastAPI, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
-from pipeline.extractor import extract_claims
+from pipeline.extractor import extract_claims, find_claim_offsets
 from pipeline.retriever import retrieve_evidence_for_claim, search_evidence
 from pipeline.scraper import scrape_url
-from pipeline.verifier import get_model, verify_claim
+from pipeline.verifier import get_model, verify_claim, detect_contradictions, rephrase_claim_for_search
 from utils.ai_detector import detect_ai_text
+from utils.credibility import score_evidence_set
 from utils.helpers import env_get, sse_data
+
+
+def summarize_reasoning(result: dict) -> str:
+    v = result.get("verdict", "UNVERIFIABLE")
+    if result.get("hallucination_blocked"):
+        return "Shield active: Insufficient targeted evidence to verify this claim."
+    
+    if v == "TRUE":
+        return "Strong evidence found supporting this claim across retrieved sources."
+    elif v == "FALSE":
+        return "Evidence heavily contradicts this claim."
+    elif v == "PARTIALLY TRUE":
+        return "Evidence supports some elements but contradicts or omits others."
+    else:
+        return "Available evidence does not definitively prove or disprove this claim."
 
 
 logging.basicConfig(level=logging.INFO)
@@ -88,6 +105,7 @@ def factcheck_stream(
             try:
                 if groq_key:
                     claims = extract_claims(article_text, groq_api_key=groq_key)
+                    claims = find_claim_offsets(article_text, claims)
                 else:
                     logger.warning("Missing GROQ_API_KEY; skipping extraction.")
                     claims = []
@@ -97,6 +115,10 @@ def factcheck_stream(
             except Exception as e:
                 logger.exception("Extraction stage failed: %s", e)
                 claims = []
+
+            for c in claims:
+                yield sse_data({"stage": "extracting", "status": "loading", "claim": c})
+                time.sleep(0.3)
 
             yield sse_data({"stage": "extracting", "status": "done", "message": f"Found {len(claims)} claims", "claims": claims})
 
@@ -127,17 +149,50 @@ def factcheck_stream(
 
                         try:
                             result = verify_claim(claim=c.get("claim", ""), evidence_list=evidence, model=app.state.model)
+                            retry_attempted = False
+                            retry_found_evidence = False
+
+                            if result.get("verdict") == "UNVERIFIABLE":
+                                yield sse_data({"stage": "verifying", "status": "retrying", "message": f"Deep dive on claim {idx}..."})
+                                retry_attempted = True
+                                
+                                rephrased = rephrase_claim_for_search(c.get("claim", ""))
+                                extra_evidence = retrieve_evidence_for_claim(rephrased, tavily_key or "", 5)
+                                
+                                if extra_evidence:
+                                    retry_found_evidence = len(extra_evidence) > 0
+                                    all_urls = {ev.get("url") for ev in evidence if ev.get("url")}
+                                    for ev in extra_evidence:
+                                        if ev.get("url") and ev.get("url") not in all_urls:
+                                            evidence.append(ev)
+                                            all_urls.add(ev.get("url"))
+                                    # Re-verify
+                                    result = verify_claim(claim=c.get("claim", ""), evidence_list=evidence, model=app.state.model)
+
                         except Exception as e:
                             logger.exception("Verification failed for claim %s: %s", idx, e)
                             yield sse_data({"stage": "verifying", "status": "error", "message": f"Verification error for claim {idx}"})
                             result = {"verdict": "UNVERIFIABLE", "confidence": 0.0, "sources": []}
+                            retry_attempted = False
+                            retry_found_evidence = False
 
                         claim_result = {
                             "id": c.get("id", idx),
                             "claim": c.get("claim", ""),
+                            "start_offset": c.get("start_offset"),
+                            "end_offset": c.get("end_offset"),
+                            "source_sentence": c.get("source_sentence"),
                             "verdict": result.get("verdict", "UNVERIFIABLE"),
                             "confidence": result.get("confidence", 0.0),
                             "sources": result.get("sources", []),
+                            "credibility": score_evidence_set(result.get("sources", [])),
+                            "contradiction": detect_contradictions(c.get("claim", ""), evidence, app.state.model),
+                            "hallucination_blocked": result.get("hallucination_blocked", False),
+                            "consistency": result.get("consistency"),
+                            "llm_sanity": result.get("llm_sanity"),
+                            "retry_attempted": retry_attempted,
+                            "retry_found_evidence": retry_found_evidence,
+                            "reasoning_summary": summarize_reasoning(result)
                         }
                         claim_results.append(claim_result)
                         yield sse_data({"stage": "verifying", "status": "done", "claim_result": claim_result})

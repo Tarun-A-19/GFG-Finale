@@ -118,9 +118,44 @@ def extract_claims(
         # Ensure sequential ids
         for idx, c in enumerate(claims, start=1):
             c["id"] = idx
-        return claims
+        return group_claims_by_entity(claims)
     except ValueError:
         raise
     except Exception as e:
         logger.exception("Claim extraction parsing/validation failed: %s", e)
         return []
+
+def find_claim_offsets(original_text: str, claims: list) -> list:
+    import re
+    for claim in claims:
+        claim_text = claim["claim"]
+        sentences = re.split(r'(?<=[.!?])\s+', original_text)
+        best_match = None
+        best_score = 0
+        offset = 0
+        for sentence in sentences:
+            claim_words = set(claim_text.lower().split())
+            sent_words = set(sentence.lower().split())
+            overlap = len(claim_words & sent_words) / max(len(claim_words), 1)
+            if overlap > best_score:
+                best_score = overlap
+                best_match = sentence
+                claim["start_offset"] = offset
+                claim["end_offset"] = offset + len(sentence)
+                claim["source_sentence"] = sentence
+            offset += len(sentence) + 1
+    return claims
+
+def group_claims_by_entity(claims: list) -> list:
+    import re
+    
+    def extract_entity(claim_text: str) -> str:
+        match = re.match(r'^((?:[A-Z][a-z]+\s?)+)', claim_text)
+        if match:
+            return match.group(1).strip()
+        return "General"
+    
+    for claim in claims:
+        claim["entity_group"] = extract_entity(claim["claim"])
+    
+    return claims
